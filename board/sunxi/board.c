@@ -255,7 +255,7 @@ int board_init(void)
 	i2c_init_board();
 #endif
 
-	eth_init_board();
+	// eth_init_board();
 
 	return 0;
 }
@@ -653,7 +653,7 @@ void sunxi_board_init(void)
 	power_failed |= axp_set_sw(IS_ENABLED(CONFIG_AXP_SW_ON));
 #endif
 #endif
-	printf("DRAM:");
+	printf("DRAM (YOLO):");
 	gd->ram_size = sunxi_dram_init();
 	printf(" %d MiB\n", (int)(gd->ram_size >> 20));
 	if (!gd->ram_size)
@@ -917,7 +917,7 @@ int ft_board_setup(void *blob, struct bd_info *bd)
 	setup_environment(blob);
 	fdt_fixup_ethernet(blob);
 
-	bluetooth_dt_fixup(blob);
+	// bluetooth_dt_fixup(blob);
 
 #ifdef CONFIG_VIDEO_DT_SIMPLEFB
 	r = sunxi_simplefb_setup(blob);
