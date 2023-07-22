@@ -676,9 +676,11 @@ static int spl_load_image(struct spl_image_info *spl_image,
  *	if CONFIG_SHOW_ERRORS is enabled, returns -ENXIO if there were
  *	devices but none worked
  */
-static int boot_from_devices(struct spl_image_info *spl_image,
-			     u32 spl_boot_list[], int count)
-{
+static int boot_from_devices(
+  struct spl_image_info *spl_image,
+	u32 spl_boot_list[],
+  int count
+) {
 	struct spl_image_loader *drv =
 		ll_entry_start(struct spl_image_loader, spl_image_loader);
 	const int n_ents =
@@ -686,6 +688,14 @@ static int boot_from_devices(struct spl_image_info *spl_image,
 	int ret = -ENODEV;
 	int i;
 
+	printf("Boot devices:\n");
+	for (i = 0; i < count && spl_boot_list[i] != BOOT_DEVICE_NONE; i++) {
+		struct spl_image_loader *loader;
+		int bootdev = spl_boot_list[i];
+		for (loader = drv; loader != drv + n_ents; loader++) {
+      printf(" - %s\n", spl_loader_name(loader));
+    }
+  }
 	for (i = 0; i < count && spl_boot_list[i] != BOOT_DEVICE_NONE; i++) {
 		struct spl_image_loader *loader;
 		int bootdev = spl_boot_list[i];

@@ -9,6 +9,9 @@
  * Some init for sunxi platform.
  */
 
+// doesn't work for everything for whatever reason
+#define DEBUG 1
+
 #include <common.h>
 #include <cpu_func.h>
 #include <init.h>
@@ -20,6 +23,7 @@
 #include <asm/cache.h>
 #include <asm/gpio.h>
 #include <asm/io.h>
+#include <asm/setjmp.h>
 #include <asm/arch/clock.h>
 #include <asm/arch/spl.h>
 #include <asm/arch/sys_proto.h>
@@ -189,12 +193,34 @@ static int gpio_init(void)
 static int spl_board_load_image(struct spl_image_info *spl_image,
 				struct spl_boot_device *bootdev)
 {
-	debug("Returning to FEL sp=%x, lr=%x\n", fel_stash.sp, fel_stash.lr);
+  // HACK THE GADGET!
+  printf("Jump to boot ROM\n");
+  void (*brom)(void) = (void (*)())0xffff0000;
+  brom();
+
+	printf("Returning to FEL sp=%x, lr=%x\n", fel_stash.sp, fel_stash.lr);
 	return_to_fel(fel_stash.sp, fel_stash.lr);
 
 	return 0;
 }
 SPL_LOAD_IMAGE_METHOD("FEL", 0, BOOT_DEVICE_BOARD, spl_board_load_image);
+
+/* r4-r9, sl, fp, sp, lr */
+// static jmp_buf jmp_buf_data {
+// }
+
+// I cannot get this to work, so we hack up something else; look above. :)
+static int spl_board_return_to_bootrom(
+    struct spl_image_info *spl_image,
+    struct spl_boot_device *bootdev
+) {
+  printf("Jump to boot ROM\n");
+  // longjmp(jmp_buf_data, 0);
+  void (*brom)(void) = (void (*)())0xffff0000;
+  brom();
+  return 0;
+}
+
 #endif /* CONFIG_SPL_BUILD */
 
 #define SUNXI_INVALID_BOOT_SOURCE	-1
@@ -413,7 +439,7 @@ static bool sunxi_valid_emmc_boot(struct mmc *mmc)
 	for (count = 0; count < spl_size / 4; count++)
 		chksum += buffer[count];
 
-	debug("eMMC boot part SPL checksum: stored: 0x%08x, computed: 0x%08x\n",
+	printf("eMMC boot part SPL checksum: stored: 0x%08x, computed: 0x%08x\n",
 	       emmc_checksum, chksum);
 
 	return emmc_checksum == chksum;
@@ -434,7 +460,7 @@ u32 spl_mmc_boot_mode(struct mmc *mmc, const u32 boot_device)
 			mmc_switch_part(mmc, 0);
 	}
 
-	debug("%s(): %s part\n", __func__,
+	printf("%s(): %s part\n", __func__,
 	      result == MMCSD_MODE_RAW ? "user" : "boot");
 
 	return result;
